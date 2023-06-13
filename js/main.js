@@ -20,6 +20,7 @@ var mouseState = false;
 var helpvisible = true;
 var testDuration = 100;
 var densitySum = []; //array that keeps how loud each segment of testDuration length is
+var sampleRate;
 
 //control initial settings
 var attack = 0.40;
@@ -110,18 +111,19 @@ function grain(p,buffer,positionx,positiony,attack,release,spread,pan){
 		p.line(that.positionx + that.randomoffsetinpixels,0,that.positionx + that.randomoffsetinpixels,p.height);
 	},200);
     function calculateOffset(offset, spread) {
-		let currOffsetInGranules = Math.floor(offset /testDuration * 44100);
-		//console.log(currOffsetInGranules);
+		console.log(sampleRate);
+		let currOffsetInGranules = Math.floor(offset /testDuration * sampleRate);
+		console.log(currOffsetInGranules);
 		let rand = Math.random() - .5;
-		//console.log(densitySum[currOffsetInGranules]);
+		console.log(densitySum[currOffsetInGranules]);
 		let randomDensitySum = (rand * spread) + densitySum[currOffsetInGranules];
-		//console.log(randomDensitySum);
+		console.log(randomDensitySum);
 		// if loudness is zero, we choose uniformly, otherwise we do a combination of uniformly and by loudness
 		let uniformOffset = rand * spread * (data.length /testDuration); // number of gr
-		//console.log(uniformOffset);
-		let randomOffsetInGranules =  (-Math.floor(offset /testDuration * 44100) + findIndex(randomDensitySum)) * loudness + uniformOffset * (1-loudness);
-		//console.log(randomOffsetInGranules);
-		return testDuration /44100.0 * randomOffsetInGranules;
+		console.log(uniformOffset);
+		let randomOffsetInGranules =  (-Math.floor(offset /testDuration * sampleRate) + findIndex(randomDensitySum)) * loudness + uniformOffset * (1-loudness);
+		console.log(randomOffsetInGranules);
+		return testDuration / sampleRate * randomOffsetInGranules;
 }
 }
 
@@ -229,6 +231,8 @@ var request = new XMLHttpRequest();
 		context.decodeAudioData(request.response,function(b){
 			buffer = b; //set the buffer
 			data = buffer.getChannelData(0);
+			console.log(buffer.sampleRate);
+			sampleRate = buffer.sampleRate;
 			getDensity();
 			isloaded = true;
 			var canvas1 = document.getElementById('canvas');

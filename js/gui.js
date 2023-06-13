@@ -222,6 +222,8 @@ function guiinit(){
 				context.decodeAudioData(request.response,function(b){
 					buffer = b; //set the buffer
 					data = buffer.getChannelData(0);
+					console.log(buffer.sampleRate);
+					sampleRate = buffer.sampleRate;
 					getDensity();
 					isloaded = true;
 					var canvas1 = document.getElementById('canvas');
@@ -257,6 +259,8 @@ function guiinit(){
     			
     			buffer = b
     			data = buffer.getChannelData(0);
+				console.log(buffer.sampleRate);
+				sampleRate = buffer.sampleRate;
                 getDensity();
     			var canvas1 = document.getElementById('canvas');
     			var processing = new Processing(canvas1,waveformdisplay);
