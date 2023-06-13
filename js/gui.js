@@ -272,6 +272,7 @@ function guiinit(){
 
 }
 function getDensity() {
+	console.log("running");
 	let sum = 0;
 	for (let i = 0; i < Math.floor(data.length / testDuration); i ++) {
 		//console.log(data[i * testDuration]);

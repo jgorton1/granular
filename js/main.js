@@ -229,6 +229,7 @@ var request = new XMLHttpRequest();
 		context.decodeAudioData(request.response,function(b){
 			buffer = b; //set the buffer
 			data = buffer.getChannelData(0);
+			getDensity();
 			isloaded = true;
 			var canvas1 = document.getElementById('canvas');
 			//initialize the processing draw when the buffer is ready
