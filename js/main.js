@@ -18,6 +18,8 @@ var X = 0;
 var Y = 0;
 var mouseState = false;
 var helpvisible = true;
+var testDuration = 100;
+var densitySum = []; //array that keeps how loud each segment of testDuration length is
 
 //control initial settings
 var attack = 0.40;
@@ -27,6 +29,7 @@ var spread = 0.2;
 var reverb = 0.5;
 var pan = 0.1;
 var trans = 1;
+var loudness = .1;
 
 
 //the grain class
@@ -70,13 +73,16 @@ function grain(p,buffer,positionx,positiony,attack,release,spread,pan){
 	//parameters
 	this.attack = attack * 0.4;
 	this.release = release * 1.5;
+
 	
 	if(this.release < 0){
 		this.release = 0.1; // 0 - release causes mute for some reason
 	}
 	this.spread = spread;
-
-	this.randomoffset = (Math.random() * this.spread) - (this.spread / 2); //in seconds
+    // TODO get the offset by volume
+	// TODO more randomization?
+	this.randomoffset = calculateOffset(this.offset, this.spread);
+	//this.randomoffset = (Math.random() * this.spread) - (this.spread / 2); //in seconds
 	///envelope
 	this.source.start(this.now,Math.max(0, this.offset + this.randomoffset),this.attack + this.release); //parameters (when,offset,duration)
 	this.gain.gain.setValueAtTime(0.0, this.now);
@@ -103,9 +109,55 @@ function grain(p,buffer,positionx,positiony,attack,release,spread,pan){
 		p.background();
 		p.line(that.positionx + that.randomoffsetinpixels,0,that.positionx + that.randomoffsetinpixels,p.height);
 	},200);
-
+    function calculateOffset(offset, spread) {
+		let currOffsetInGranules = Math.floor(offset /testDuration * 44100);
+		//console.log(currOffsetInGranules);
+		let rand = Math.random() - .5;
+		//console.log(densitySum[currOffsetInGranules]);
+		let randomDensitySum = (rand * spread) + densitySum[currOffsetInGranules];
+		//console.log(randomDensitySum);
+		// if loudness is zero, we choose uniformly, otherwise we do a combination of uniformly and by loudness
+		let uniformOffset = rand * spread * (data.length /testDuration); // number of gr
+		//console.log(uniformOffset);
+		let randomOffsetInGranules =  (-Math.floor(offset /testDuration * 44100) + findIndex(randomDensitySum)) * loudness + uniformOffset * (1-loudness);
+		//console.log(randomOffsetInGranules);
+		return testDuration /44100.0 * randomOffsetInGranules;
+}
 }
 
+function findIndex(target) {
+    let left = 0;
+    let right = densitySum.length - 1;
+
+    while (left < right) {
+        let mid = Math.floor(left + (right - left) / 2);
+
+        // Check if the middle element is the target
+        if (densitySum[mid] === target) {
+            return mid;
+        }
+
+        // Check if the target is in the left half of the array
+        if (densitySum[mid] > target) {
+            right = mid - 1;
+        }
+        // Check if the target is in the right half of the array
+        else {
+            left = mid + 1;
+        }
+    }
+
+    // At this point, the target was not found in the array
+    // Return the index of the element closest to the target
+    // TODO check to see if this causes problems
+    if (Math.abs(densitySum[left] - target) < Math.abs(densitySum[right] - target)) {
+		console.log(left);
+        return left;
+    } else {
+		console.log(right);
+        return right;
+    }
+}
 
 //the voice class
 function voice(id){

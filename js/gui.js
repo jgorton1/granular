@@ -1,5 +1,5 @@
 function guiinit(){
-	var dialwidth = parseInt($('.col-sm-2').css('width')) - ( parseInt($('.col-sm-2').css('width')) / 6);
+	var dialwidth = parseInt($('.col-sm-1').css('width')) - ( parseInt($('.col-sm-1').css('width')) / 6);
 	
 	var settings = {
 		'min':0,
@@ -12,6 +12,21 @@ function guiinit(){
 
 	var bg = '#E4E4E4';
 	var fg = '#2a6496';
+	$("#loudness").knob({
+		'min':1,
+		'max':100,
+		'width' : dialwidth,
+		"displayInput" :  false,
+		"val": 50,
+		"angleArc" : 180,
+		"angleOffset" : -90,
+		'bgColor': bg,
+		'fgColor': fg,
+		"change": function(v){
+			loudness = v / 100;
+			
+		}
+	});
 	$("#attack").knob({
 		'min':1,
 		'max':100,
@@ -69,7 +84,8 @@ function guiinit(){
 		'bgColor': bg,
 		'fgColor': fg,
 		"change": function(v){
-			spread = v / 100;
+			spread = v / 1000;
+			//spread = v / 100;
 
 			
 		}
@@ -206,6 +222,7 @@ function guiinit(){
 				context.decodeAudioData(request.response,function(b){
 					buffer = b; //set the buffer
 					data = buffer.getChannelData(0);
+					getDensity();
 					isloaded = true;
 					var canvas1 = document.getElementById('canvas');
 					//initialize the processing draw when the buffer is ready
@@ -240,6 +257,7 @@ function guiinit(){
     			
     			buffer = b
     			data = buffer.getChannelData(0);
+                getDensity();
     			var canvas1 = document.getElementById('canvas');
     			var processing = new Processing(canvas1,waveformdisplay);
     			load();
@@ -253,3 +271,30 @@ function guiinit(){
 	},false);
 
 }
+function getDensity() {
+	let sum = 0;
+	for (let i = 0; i < Math.floor(data.length / testDuration); i ++) {
+		//console.log(data[i * testDuration]);
+		//console.log(RMS(data, testDuration * i,testDuration)+ " rms");
+
+		densitySum.push(RMS(data, testDuration * i,testDuration) + ((i !=0) ? densitySum[i-1] : 0));
+		//console.log(densitySum[i]);
+	}
+	sum = densitySum[Math.floor(data.length / testDuration) -1];
+	//console.log(sum + " what we think sum is");
+	for (let i = 0; i < Math.floor(data.length / testDuration); i ++) {
+		//console.log(densitySum[i]);
+		densitySum[i] /= sum;
+		//console.log(densitySum[i]);
+	}
+}
+function RMS(samples, offset, granuleDuration) {
+	let sum = 0;
+	for (let j = offset; j < offset + granuleDuration; j++) {
+		sum += Math.pow(samples[j], 2);
+	}
+	sum /= granuleDuration;
+	sum = Math.sqrt(sum);
+	//console.log(sum + " sum");
+	return sum;
+  }
