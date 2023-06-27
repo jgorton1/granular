@@ -241,7 +241,82 @@ function guiinit(){
 		
 
 	});
+	
+    // record
+	var chunks = [];
+    var mediaRecorder;
+    var audioStream;
+    
+    function startRecording() {
+		console.log("start");
+		chunks = [];
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(function(stream) {
+          audioStream = stream;
+          mediaRecorder = new MediaRecorder(stream);
+          mediaRecorder.ondataavailable = function(e) {
+            chunks.push(e.data);
+          };
+          mediaRecorder.start();
+          document.getElementById("startButton").disabled = true;
+          document.getElementById("stopButton").disabled = false;
+        })
+        .catch(function(err) {
+          console.log('Error: ' + err);
+        });
+    }
 
+    function stopRecording() {
+		console.log("stop");
+		if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+      audioStream.getTracks().forEach(track => track.stop());
+      document.getElementById("stopButton").disabled = true;
+      document.getElementById("useButton").disabled = false;
+	  document.getElementById("startButton").disabled = false;
+		}
+    }
+
+    function useRecording() {
+		console.log(chunks[3]);
+	  
+	  const blob = new Blob(chunks, { type: 'audio/wav' });
+      const fileReader = new FileReader();
+      fileReader.onload = function(e) {
+        var arrayBuffer = e.target.result;
+		arrayBuffer = arrayBuffer.slice(0, -250);
+		context.decodeAudioData(arrayBuffer, function(b) {
+			console.log("hmm");
+			buffer = b
+			data = buffer.getChannelData(0);
+			console.log(buffer.sampleRate);
+			sampleRate = buffer.sampleRate;
+			getDensity();
+			var canvas1 = document.getElementById('canvas');
+			var processing = new Processing(canvas1,waveformdisplay);
+			load();
+		  });
+
+      };
+      fileReader.readAsArrayBuffer(blob);
+      //const blob = new Blob(chunks, { type: 'audio/wav' });
+      //const url = URL.createObjectURL(blob);
+      //const a = document.createElement('a');
+      //document.body.appendChild(a);
+      //a.href = url;
+      //a.download = 'recording.wav';
+      //a.click();
+      //window.URL.revokeObjectURL(url);
+      //document.body.removeChild(a);
+    }
+
+	console.log("yuh");
+	window.onload = function() {
+		document.getElementById('startButton').addEventListener("click", startRecording);
+		document.getElementById('stopButton').addEventListener("click", stopRecording);
+		console.log("added button stop function");
+		document.getElementById('useButton').addEventListener("click", useRecording);
+	};
 	//drop
 	var drop = document.getElementById('waveform');
 
