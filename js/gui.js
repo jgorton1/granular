@@ -207,8 +207,9 @@ function guiinit(){
 		$(this).css('opacity','1');
 	});
 
-
+    function samples() {
 	$('#sample1').click(function(){
+		console.log("sample 1");
 		load();
 	});
 
@@ -241,6 +242,7 @@ function guiinit(){
 		
 
 	});
+}
 	
     // record
 	var chunks = [];
@@ -312,6 +314,7 @@ function guiinit(){
 
 	console.log("yuh");
 	window.onload = function() {
+		samples();
 		document.getElementById('startButton').addEventListener("click", startRecording);
 		document.getElementById('stopButton').addEventListener("click", stopRecording);
 		console.log("added button stop function");
